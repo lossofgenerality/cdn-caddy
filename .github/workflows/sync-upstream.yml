@@ -1,0 +1,30 @@
+# © Computational Classnotes · CC BY-NC-SA 4.0
+# Weekly: copy upstream master and tags into this mirror, unchanged.
+name: sync-upstream
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/caddyserver/caddy.git
+          git fetch upstream master --tags
+      - name: Refuse anything but a fast-forward
+        run: |
+          if git rev-parse -q --verify origin/master >/dev/null; then
+            git merge-base --is-ancestor origin/master upstream/master \
+              || { echo "Upstream history was rewritten; stopping for a person to look."; exit 1; }
+          fi
+      - name: Push the unchanged copy
+        run: |
+          git push origin upstream/master:refs/heads/master
+          git push origin --tags
