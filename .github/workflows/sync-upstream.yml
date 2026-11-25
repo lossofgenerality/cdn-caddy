@@ -11,9 +11,13 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
+      # GITHUB_TOKEN may not push refs that carry upstream's own workflow files,
+      # so the push uses MIRROR_TOKEN: a fine-grained token limited to this
+      # repository, with Contents and Workflows set to read and write.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.MIRROR_TOKEN }}
       - name: Fetch upstream
         run: |
           git remote add upstream https://github.com/caddyserver/caddy.git
